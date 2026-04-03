@@ -48,6 +48,7 @@ def main():
     # ===== REPARTITION PAR REGION =====
     print("\n--- Répartition par region (top 5) ---")
     if "region" in df.columns:
+        region_counts = df["region"].shape[0] # Correction mineure pour cohérence
         region_counts = df["region"].value_counts().head(5)
         for region, count in region_counts.items():
             print(f"{region:15s} : {count:3d} patients")
@@ -62,6 +63,17 @@ def main():
             print(f"{diag:12s} : {temp:.1f} C")
     else:
         print("Colonnes necessaires manquantes (diagnostic, temperature).")
+
+    # ==========================================================
+    # EXERCICE 1 : ANALYSE CROISÉE (Sexe et Diagnostic)
+    # ==========================================================
+    print("\n--- Analyse croisée : Sexe et Diagnostic ---")
+    if "sexe" in df.columns and "diagnostic" in df.columns:
+        # Utilisation de groupby().size() comme demandé dans l'exercice
+        analyse_croisee = df.groupby(["sexe", "diagnostic"]).size()
+        print(analyse_croisee)
+    else:
+        print("Colonnes 'sexe' ou 'diagnostic' manquantes pour l'analyse croisée.")
 
     print("\n" + "=" * 50)
     print("Exploration terminee")
