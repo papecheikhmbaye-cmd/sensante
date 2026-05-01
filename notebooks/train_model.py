@@ -203,3 +203,107 @@ for classe, proba in zip(model_loaded.classes_, probas):
     bar = '#' * int(proba * 30)
     print(f"{classe:10s} : {proba:.1%} {bar}")
 
+# ==============================
+# 📊 Importance des features
+# ==============================
+print("\nImportance des variables :")
+
+importances = model.feature_importances_
+
+for name, imp in sorted(
+    zip(feature_cols, importances),
+    key=lambda x: x[1],
+    reverse=True
+):
+    print(f"{name:20s} : {imp:.3f}")
+
+
+
+
+
+# ==============================
+# 🧪 Test avec 3 patients fictifs
+# ==============================
+
+patients_test = [
+    {
+        "nom": "Jeune sain",
+        "data": {
+            'age': 20,
+            'sexe': 'M',
+            'temperature': 36.5,
+            'tension_sys': 120,
+            'toux': False,
+            'fatigue': False,
+            'maux_tete': False,
+            'region': 'Dakar'
+        }
+    },
+    {
+        "nom": "Adulte forte fièvre",
+        "data": {
+            'age': 35,
+            'sexe': 'F',
+            'temperature': 40.2,
+            'tension_sys': 115,
+            'toux': True,
+            'fatigue': True,
+            'maux_tete': True,
+            'region': 'Dakar'
+        }
+    },
+    {
+        "nom": "Patient âgé avec toux",
+        "data": {
+            'age': 70,
+            'sexe': 'M',
+            'temperature': 38.0,
+            'tension_sys': 130,
+            'toux': True,
+            'fatigue': True,
+            'maux_tete': False,
+            'region': 'Dakar'
+        }
+    }
+]
+
+
+
+print("\n==============================")
+print(" TEST SUR 3 PATIENTS")
+print("==============================")
+
+for patient in patients_test:
+    p = patient["data"]
+
+    # Encodage
+    sexe_enc = le_sexe_loaded.transform([p['sexe']])[0]
+    region_enc = le_region_loaded.transform([p['region']])[0]
+
+    features = [
+        p['age'],
+        sexe_enc,
+        p['temperature'],
+        p['tension_sys'],
+        int(p['toux']),
+        int(p['fatigue']),
+        int(p['maux_tete']),
+        region_enc
+    ]
+
+    # Conversion en DataFrame avec noms de colonnes
+    features_df = pd.DataFrame([features], columns=feature_cols)
+
+    # Prédiction
+    pred = model_loaded.predict(features_df)[0]
+    probas = model_loaded.predict_proba(features_df)[0]
+    proba_max = probas.max()
+
+    print(f"\n {patient['nom']}")
+    print(f"Age: {p['age']} | Temp: {p['temperature']}°C | Toux: {p['toux']}")
+    print(f" Diagnostic : {pred}")
+    print(f" Confiance : {proba_max:.1%}")
+
+    print("   Détails :")
+    for classe, proba in zip(model_loaded.classes_, probas):
+        print(f"   - {classe:10s} : {proba:.1%}")
