@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel, Field
 import joblib
 import numpy as np
+from fastapi.middleware.cors import CORSMiddleware
 
 # --- Schemas Pydantic --
 
@@ -34,7 +35,14 @@ app = FastAPI(
     description="Assistant pre-diagnostic medical pour le Senegal",
     version="0.2.0"
 )
-
+# Autoriser les requetes depuis le frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # En dev : tout accepter
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # --- Chargement du modele (une seule fois) --
 
 print("Chargement du modele...")
@@ -52,6 +60,16 @@ print(f"Modele charge : {list(model.classes_)}")
 @app.get("/health")
 def health_check():
     return {"status": "ok", "message": "SenSante API is running"}
+
+
+@app.get("/model-info")
+def model_info():
+    return {
+        "model_type": type(model).__name__,
+        "n_estimators": getattr(model, "n_estimators", "N/A"),
+        "classes": list(model.classes_) if hasattr(model, "classes_") else [],
+        "n_features": len(feature_cols) if feature_cols is not None else "N/A"
+    }
 
 
 @app.post("/predict", response_model=DiagnosticOutput)
